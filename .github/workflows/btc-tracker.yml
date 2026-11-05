@@ -1,0 +1,34 @@
+name: BTC liquidation alert
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"   # a new run is queued every 3h
+  workflow_dispatch:
+
+# Only one run at a time. A queued run waits for the current one to finish,
+# so the listener restarts back-to-back with almost no gap.
+concurrency:
+  group: btc-liq
+  cancel-in-progress: false
+
+jobs:
+  listen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358          # GitHub's hard limit is 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install websockets
+
+      - name: Listen for liquidations
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          THRESHOLD_USD: "2000000"
+          RUN_SECONDS: "21000"   # 5h50m, then exit so the queued run takes over
+          MAX_FAILS: "12"        # stop early if Binance blocks GitHub's servers
+        run: python btc_liq_alert.py
