@@ -28,7 +28,15 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          THRESHOLD_USD: "2000000"
-          RUN_SECONDS: "21000"   # 5h50m, then exit so the queued run takes over
-          MAX_FAILS: "12"        # stop early if Binance blocks GitHub's servers
+          PYTHONUNBUFFERED: "1"   # live logs (otherwise output shows only at exit)
+          THRESH_60: "500000"     # alert if >= $500K same-side liquidations in 60s
+          THRESH_300: "1500000"   # ...or >= $1.5M in 300s
+          COOLDOWN: "180"
+          RUN_SECONDS: "21000"    # 5h50m, then exit so the queued run takes over
+          MAX_FAILS: "6"          # Telegram warning after 6 failed connects in a row
+          ENABLE_BYBIT: "1"
+          ENABLE_OKX: "1"
+          PRICE_ALERT: "1"        # backup alert on fast price moves
+          PRICE_PCT_5M: "1.5"
+          PRICE_PCT_15M: "2.5"
         run: python btc_liq_alert.py
